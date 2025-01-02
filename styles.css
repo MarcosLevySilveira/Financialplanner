@@ -149,12 +149,16 @@ table td button:hover {
 /* Styles for category cards */
 #cards-categorias {
     display: flex;
-    justify-content: space-around;
+    flex-wrap: wrap; /* Permite quebrar a linha */
+    justify-content: center;
+    gap: 10px; /* Espaçamento entre os cards */
     margin-top: 20px;
 }
 
 #cards-categorias .card {
-    width: 20%;
+    width: calc(10% - 10px); /* Garante que 10 cards caibam em uma linha, considerando o gap */
+    min-width: 100px; /* Define um tamanho mínimo para os cards */
+    text-align: center;
 }
 
 /* Styles for chart */

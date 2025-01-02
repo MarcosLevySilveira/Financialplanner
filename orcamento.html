@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Planejador de Orçamento</title>
+
+    <script>
+        function saveData(event) {
+            event.preventDefault();
+
+            const item = document.getElementById("item").value;
+            const date = document.getElementById("date").value;
+            const estimatedCostInput = document.getElementById("estimatedCost").value.replace(",", ".");
+            const estimatedCost = parseFloat(estimatedCostInput);
+
+            if (isNaN(estimatedCost)) {
+                alert("Por favor, insira um valor estimado válido.");
+                return;
+            }
+
+            const realValueInput = document.getElementById("realValue").value.replace(",", ".");
+            const realValue = realValueInput ? parseFloat(realValueInput) : null;
+
+            if (realValueInput && isNaN(realValue)) {
+                alert("Por favor, insira um valor real válido.");
+                return;
+            }
+
+            const newBudgetItem = { item, date, estimatedCost, realValue };
+
+            let budgetItems = JSON.parse(localStorage.getItem("budgetItems")) || [];
+            budgetItems.push(newBudgetItem);
+
+            localStorage.setItem("budgetItems", JSON.stringify(budgetItems));
+
+            alert("Item adicionado com sucesso!");
+            loadData(); // Atualiza a lista
+            document.getElementById("formBudget").reset(); // Limpa os campos do formulário
+        }
+
+        function loadData() {
+            const budgetItems = JSON.parse(localStorage.getItem("budgetItems")) || [];
+            const tableBody = document.getElementById("budgetList");
+            const totalSpentElement = document.getElementById("totalSpent");
+            tableBody.innerHTML = "";
+
+            let totalSpent = 0;
+
+            budgetItems.forEach((item, index) => {
+                if (item.realValue !== null) {
+                    totalSpent += item.realValue;
+                }
+
+                const statusMessage = item.realValue !== null
+                    ? item.realValue > item.estimatedCost
+                        ? "Acima do orçamento"
+                        : "Dentro do orçamento"
+                    : "Pendente";
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                  <td>${item.item}</td>
+                  <td>${item.date}</td>
+                  <td>${item.estimatedCost.toFixed(2)}</td>
+                  <td>${item.realValue !== null ? item.realValue.toFixed(2) : "-"}</td>
+                  <td>${statusMessage}</td>
+                  <td>
+                      <button onclick="editData(${index})">Editar</button>
+                      <button onclick="deleteData(${index})">Deletar</button>
+                  </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            totalSpentElement.textContent = `Gasto Real Total: R$ ${totalSpent.toFixed(2)}`;
+        }
+
+        function editData(index) {
+            const budgetItems = JSON.parse(localStorage.getItem("budgetItems"));
+            const item = budgetItems[index];
+
+            document.getElementById("item").value = item.item;
+            document.getElementById("date").value = item.date;
+            document.getElementById("estimatedCost").value = item.estimatedCost;
+            document.getElementById("realValue").value = item.realValue !== null ? item.realValue : "";
+
+            document.getElementById("saveBtn").onclick = function () {
+                updateData(index);
+            };
+        }
+
+        function updateData(index) {
+            const item = document.getElementById("item").value;
+            const date = document.getElementById("date").value;
+            const estimatedCostInput = document.getElementById("estimatedCost").value.replace(",", ".");
+            const estimatedCost = parseFloat(estimatedCostInput);
+
+            if (isNaN(estimatedCost)) {
+                alert("Por favor, insira um valor estimado válido.");
+                return;
+            }
+
+            const realValueInput = document.getElementById("realValue").value.replace(",", ".");
+            const realValue = realValueInput ? parseFloat(realValueInput) : null;
+
+            if (realValueInput && isNaN(realValue)) {
+                alert("Por favor, insira um valor real válido.");
+                return;
+            }
+
+            const updatedItem = { item, date, estimatedCost, realValue };
+
+            let budgetItems = JSON.parse(localStorage.getItem("budgetItems"));
+            budgetItems[index] = updatedItem;
+            localStorage.setItem("budgetItems", JSON.stringify(budgetItems));
+
+            alert("Item atualizado com sucesso!");
+            loadData(); // Atualiza a lista
+            document.getElementById("formBudget").reset(); // Limpa os campos do formulário
+        }
+
+        function deleteData(index) {
+            let budgetItems = JSON.parse(localStorage.getItem("budgetItems"));
+            budgetItems.splice(index, 1);
+            localStorage.setItem("budgetItems", JSON.stringify(budgetItems));
+
+            alert("Item deletado com sucesso!");
+            loadData(); // Atualiza a lista
+        }
+    </script>
+</head>
+
+<body onload="loadData()">
+    
+    <header>
+        <h1>Controle de Finanças Pessoais</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Tabela de Gastos</a>
+        <a href="orcamento.html">Orçamento</a>
+        <a href="cadastro.html">Cadastrar Despesa/Entrada</a>
+        <a href="grafico.html">Gráfico de Saldo</a>
+        <a href="categorias.html">Categorias e Subcategorias</a>
+        <a href="linha_do_tempo.html">Linha do tempo</a>
+        <a href="poupanca.html">Poupança</a>
+        <a href="viagem.html">Viagem</a>
+        <a href="serasa.html">Serasa</a>
+    </nav>
+
+    <main>
+        <h2>Adicionar Novo Item</h2>
+        <form id="formBudget" onsubmit="saveData(event)">
+            <label for="item">Item</label>
+            <select id="item" required>
+                <option value="Academia">Academia</option>
+                <option value="Aluguel">Aluguel</option>
+                <option value="Água">Água</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <!-- Outras opções... -->
+            </select>
+
+            <label for="date">Data</label>
+            <input type="date" id="date" required>
+
+            <label for="estimatedCost">Custo Estimado (R$)</label>
+            <input type="text" id="estimatedCost" required>
+
+            <label for="realValue">Valor Real (R$)</label>
+            <input type="text" id="realValue">
+
+            <button type="submit" id="saveBtn">Salvar</button>
+        </form>
+
+        <h2>Itens Planejados</h2>
+        <h3 id="totalSpent">Gasto Real Total: R$ 0,00</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Data</th>
+                    <th>Custo Estimado</th>
+                    <th>Valor Real</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="budgetList">
+                <!-- Linhas serão inseridas dinamicamente -->
+            </tbody>
+        </table>
+    </main>
+</body>
+
+</html>

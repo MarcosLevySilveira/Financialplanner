@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Gerenciar Despesas/Entradas</title>
+
+    <script>
+        function saveData(event) {
+            event.preventDefault();
+
+            // Normalize the value to use dots as decimal separators
+            const valorInput = document.getElementById("valor").value.replace(",", ".");
+            const valor = parseFloat(valorInput);
+
+            if (isNaN(valor)) {
+                alert("Por favor, insira um valor válido.");
+                return;
+            }
+
+            const data = document.getElementById("data").value;
+            const categoria = document.getElementById("categoria").value;
+            const descricao = document.getElementById("descricao").value;
+            const tipo = document.getElementById("tipo").value;
+
+            const novaDespesa = { data, categoria, descricao, valor, tipo };
+
+            let despesas = JSON.parse(localStorage.getItem("despesas")) || [];
+            despesas.push(novaDespesa);
+
+            localStorage.setItem("despesas", JSON.stringify(despesas));
+
+            alert("Cadastro realizado com sucesso!");
+            window.location.reload();
+        }
+
+        function loadData() {
+            const despesas = JSON.parse(localStorage.getItem("despesas")) || [];
+            const tableBody = document.getElementById("despesasList");
+            tableBody.innerHTML = "";
+
+            despesas.forEach((despesa, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                  <td>${despesa.data}</td>
+                  <td>${despesa.categoria}</td>
+                  <td>${despesa.descricao}</td>
+                  <td>${despesa.valor.toFixed(2)}</td>
+                  <td>${despesa.tipo}</td>
+                  <td>
+                      <button onclick="editData(${index})">Editar</button>
+                      <button onclick="deleteData(${index})">Deletar</button>
+                  </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function editData(index) {
+            const despesas = JSON.parse(localStorage.getItem("despesas"));
+            const despesa = despesas[index];
+
+            document.getElementById("data").value = despesa.data;
+            document.getElementById("categoria").value = despesa.categoria;
+            document.getElementById("descricao").value = despesa.descricao;
+            document.getElementById("valor").value = despesa.valor;
+            document.getElementById("tipo").value = despesa.tipo;
+
+            document.getElementById("saveBtn").onclick = function () {
+                updateData(index);
+            };
+        }
+
+        function updateData(index) {
+            const valorInput = document.getElementById("valor").value.replace(",", ".");
+            const valor = parseFloat(valorInput);
+
+            if (isNaN(valor)) {
+                alert("Por favor, insira um valor válido.");
+                return;
+            }
+
+            const data = document.getElementById("data").value;
+            const categoria = document.getElementById("categoria").value;
+            const descricao = document.getElementById("descricao").value;
+            const tipo = document.getElementById("tipo").value;
+
+            const updatedDespesa = { data, categoria, descricao, valor, tipo };
+
+            let despesas = JSON.parse(localStorage.getItem("despesas"));
+            despesas[index] = updatedDespesa;
+            localStorage.setItem("despesas", JSON.stringify(despesas));
+
+            alert("Cadastro atualizado com sucesso!");
+            window.location.reload();
+        }
+
+        function deleteData(index) {
+            let despesas = JSON.parse(localStorage.getItem("despesas"));
+            despesas.splice(index, 1);
+            localStorage.setItem("despesas", JSON.stringify(despesas));
+
+            alert("Cadastro deletado com sucesso!");
+            window.location.reload();
+        }
+    </script>
+</head>
+
+<body onload="loadData()">
+    <header>
+        <h1>Gerenciar Despesas/Entradas</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Tabela de Gastos</a>
+        <a href="orcamento.html">Orçamento</a>
+        <a href="cadastro.html">Cadastrar Despesa/Entrada</a>
+        <a href="grafico.html">Gráfico de Saldo</a>
+        <a href="categorias.html">Categorias e Subcategorias</a>
+        <a href="linha_do_tempo.html">Linha do tempo</a>
+        <a href="poupanca.html">Poupança</a>
+        <a href="viagem.html">Viagem</a>
+        <a href="serasa.html">Serasa</a>
+    </nav>
+
+    <main>
+        <h1>Cadastrar Nova Despesa/Entrada</h1>
+        <form id="formCadastro" onsubmit="saveData(event)">
+            <label for="data">Data</label>
+            <input type="date" id="data" required>
+
+            <label for="categoria">Categoria</label>
+            <select id="categoria" required>
+                <option value="Academia">Academia</option>
+                <option value="Aluguel">Aluguel</option>
+                <option value="Água">Água</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Calçados">Calçados</option>
+                <option value="Cursos">Cursos</option>
+                <option value="Celular BR">Celular BR</option>
+                <option value="Celular CA">Celular CA</option>
+                <option value="Cinema">Cinema</option>
+                <option value="Delivery Food">Delivery Food</option>
+                <option value="Distribuidora">Distribuidora</option>
+                <option value="Dízimo">Dízimo</option>
+                <option value="Drogaria">Drogaria</option>
+                <option value="Educação">Educação</option>
+                <option value="Empréstimos">Empréstimos</option>
+                <option value="Faculdade">Faculdade</option>
+                <option value="Férias">Férias</option>
+                <option value="Games">Games</option>
+                <option value="Impostos">Impostos</option>
+                <option value="Internet">Internet</option>
+                <option value="Investimentos">Investimentos</option>
+                <option value="Lavanderia">Lavanderia</option>
+                <option value="Lava-jato">Lava-jato</option>
+                <option value="Luz">Luz</option>
+                <option value="Manutenção do Carro">Manutenção do Carro</option>
+                <option value="Metrô">Metrô</option>
+                <option value="Ofertas">Ofertas</option>
+                <option value="Padaria">Padaria</option>
+                <option value="Passagem aérea">Passagem aérea</option>
+                <option value="Plano de Saúde">Plano de Saúde</option>
+                <option value="Pensão">Pensão</option>
+                <option value="Pet Shop">Pet Shop</option>
+                <option value="Poupança">Poupança</option>
+                <option value="Posto de Gasolina">Posto de Gasolina</option>
+                <option value="Presentes">Presentes</option>
+                <option value="Restaurantes">Restaurantes</option>
+                <option value="Roupas">Roupas</option>
+                <option value="Salário">Salário</option>
+                <option value="Salão de beleza">Salão de beleza</option>
+                <option value="Seguro do Carro">Seguro do Carro</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Supermercado">Supermercado</option>
+                <option value="Taxas">Taxas</option>
+                <option value="Uber">Uber</option>
+                <option value="Vale-Transporte">Vale-Transporte</option>
+            </select>
+
+            <label for="descricao">Descrição</label>
+            <input type="text" id="descricao" required>
+
+            <label for="valor">Valor (R$)</label>
+            <input type="text" id="valor" required>
+
+            <label for="tipo">Tipo</label>
+            <select id="tipo" required>
+                <option value="Entrada">Entrada</option>
+                <option value="Saída">Saída</option>
+            </select>
+
+            <button type="submit" id="saveBtn">Salvar</button>
+        </form>
+    </main>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Categoria</th>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Tipo</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="despesasList">
+        </tbody>
+    </table>
+</body>
+
+</html>

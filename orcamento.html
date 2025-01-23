@@ -11,8 +11,8 @@
         function saveData(event) {
             event.preventDefault();
 
-            const item = document.getElementById("item").value;
-            const date = document.getElementById("date").value;
+            const category = document.getElementById("category").value;
+            const month = document.getElementById("month").value;
             const estimatedCostInput = document.getElementById("estimatedCost").value.replace(",", ".");
             const estimatedCost = parseFloat(estimatedCostInput);
 
@@ -29,14 +29,14 @@
                 return;
             }
 
-            const newBudgetItem = { item, date, estimatedCost, realValue };
+            const newBudgetItem = { category, month, estimatedCost, realValue };
 
             let budgetItems = JSON.parse(localStorage.getItem("budgetItems")) || [];
             budgetItems.push(newBudgetItem);
 
             localStorage.setItem("budgetItems", JSON.stringify(budgetItems));
 
-            alert("Item adicionado com sucesso!");
+            alert("Orçamento adicionado com sucesso!");
             loadData(); // Atualiza a lista
             document.getElementById("formBudget").reset(); // Limpa os campos do formulário
         }
@@ -48,10 +48,17 @@
             tableBody.innerHTML = "";
 
             let totalSpent = 0;
+            let categoryTotals = {};
 
-            budgetItems.forEach((item, index) => {
+            budgetItems.forEach((item) => {
+                const key = item.category + "_" + item.month; // Criando uma chave única para cada categoria e mês
+                if (!categoryTotals[key]) {
+                    categoryTotals[key] = { category: item.category, month: item.month, estimated: 0, real: 0 };
+                }
+
+                categoryTotals[key].estimated += item.estimatedCost;
                 if (item.realValue !== null) {
-                    totalSpent += item.realValue;
+                    categoryTotals[key].real += item.realValue;
                 }
 
                 const statusMessage = item.realValue !== null
@@ -62,39 +69,60 @@
 
                 const row = document.createElement("tr");
                 row.innerHTML = `
-                  <td>${item.item}</td>
-                  <td>${item.date}</td>
+                  <td>${item.category}</td>
+                  <td>${item.month}</td>
                   <td>${item.estimatedCost.toFixed(2)}</td>
                   <td>${item.realValue !== null ? item.realValue.toFixed(2) : "-"}</td>
                   <td>${statusMessage}</td>
                   <td>
-                      <button onclick="editData(${index})">Editar</button>
-                      <button onclick="deleteData(${index})">Deletar</button>
+                      <button onclick="editData('${item.category}', '${item.month}')">Editar</button>
+                      <button onclick="deleteData('${item.category}', '${item.month}')">Deletar</button>
                   </td>
                 `;
                 tableBody.appendChild(row);
             });
 
-            totalSpentElement.textContent = `Gasto Real Total: R$ ${totalSpent.toFixed(2)}`;
+            // Atualiza o total de gastos por categoria e mês
+            const categoryTableBody = document.getElementById("categoryBudgetList");
+            categoryTableBody.innerHTML = "";
+
+            let totalMonthlySpent = 0;
+            for (const key in categoryTotals) {
+                const item = categoryTotals[key];
+                const status = item.real > item.estimated ? "Acima do orçamento" : "Dentro do orçamento";
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${item.category}</td>
+                    <td>${item.month}</td>
+                    <td>${item.estimated.toFixed(2)}</td>
+                    <td>${item.real.toFixed(2)}</td>
+                    <td>${status}</td>
+                `;
+                categoryTableBody.appendChild(row);
+
+                totalMonthlySpent += item.real;
+            }
+
+            totalSpentElement.textContent = `Gasto Real Total: R$ ${totalMonthlySpent.toFixed(2)}`;
         }
 
-        function editData(index) {
+        function editData(category, month) {
             const budgetItems = JSON.parse(localStorage.getItem("budgetItems"));
-            const item = budgetItems[index];
+            const item = budgetItems.find(i => i.category === category && i.month === month);
 
-            document.getElementById("item").value = item.item;
-            document.getElementById("date").value = item.date;
+            document.getElementById("category").value = item.category;
+            document.getElementById("month").value = item.month;
             document.getElementById("estimatedCost").value = item.estimatedCost;
             document.getElementById("realValue").value = item.realValue !== null ? item.realValue : "";
 
             document.getElementById("saveBtn").onclick = function () {
-                updateData(index);
+                updateData(category, month);
             };
         }
 
-        function updateData(index) {
-            const item = document.getElementById("item").value;
-            const date = document.getElementById("date").value;
+        function updateData(category, month) {
+            const item = document.getElementById("category").value;
+            const date = document.getElementById("month").value;
             const estimatedCostInput = document.getElementById("estimatedCost").value.replace(",", ".");
             const estimatedCost = parseFloat(estimatedCostInput);
 
@@ -111,23 +139,24 @@
                 return;
             }
 
-            const updatedItem = { item, date, estimatedCost, realValue };
+            const updatedItem = { category, month, estimatedCost, realValue };
 
             let budgetItems = JSON.parse(localStorage.getItem("budgetItems"));
+            const index = budgetItems.findIndex(i => i.category === category && i.month === month);
             budgetItems[index] = updatedItem;
             localStorage.setItem("budgetItems", JSON.stringify(budgetItems));
 
-            alert("Item atualizado com sucesso!");
+            alert("Orçamento atualizado com sucesso!");
             loadData(); // Atualiza a lista
             document.getElementById("formBudget").reset(); // Limpa os campos do formulário
         }
 
-        function deleteData(index) {
+        function deleteData(category, month) {
             let budgetItems = JSON.parse(localStorage.getItem("budgetItems"));
-            budgetItems.splice(index, 1);
+            budgetItems = budgetItems.filter(item => !(item.category === category && item.month === month));
             localStorage.setItem("budgetItems", JSON.stringify(budgetItems));
 
-            alert("Item deletado com sucesso!");
+            alert("Orçamento deletado com sucesso!");
             loadData(); // Atualiza a lista
         }
     </script>
@@ -154,17 +183,17 @@
     <main>
         <h2>Adicionar Novo Item</h2>
         <form id="formBudget" onsubmit="saveData(event)">
-            <label for="item">Item</label>
-            <select id="item" required>
+            <label for="category">Categoria</label>
+            <select id="category" required>
                 <option value="Academia">Academia</option>
                 <option value="Aluguel">Aluguel</option>
                 <option value="Água">Água</option>
                 <option value="Cartão de Crédito">Cartão de Crédito</option>
-                <!-- Outras opções... -->
+                <!-- Outras opções de categorias -->
             </select>
 
-            <label for="date">Data</label>
-            <input type="date" id="date" required>
+            <label for="month">Mês</label>
+            <input type="month" id="month" required>
 
             <label for="estimatedCost">Custo Estimado (R$)</label>
             <input type="text" id="estimatedCost" required>
@@ -180,8 +209,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>Item</th>
-                    <th>Data</th>
+                    <th>Categoria</th>
+                    <th>Mês</th>
                     <th>Custo Estimado</th>
                     <th>Valor Real</th>
                     <th>Status</th>
@@ -189,6 +218,22 @@
                 </tr>
             </thead>
             <tbody id="budgetList">
+                <!-- Linhas serão inseridas dinamicamente -->
+            </tbody>
+        </table>
+
+        <h2>Resumo de Orçamento Mensal por Categoria</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Categoria</th>
+                    <th>Mês</th>
+                    <th>Custo Estimado</th>
+                    <th>Valor Real</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="categoryBudgetList">
                 <!-- Linhas serão inseridas dinamicamente -->
             </tbody>
         </table>

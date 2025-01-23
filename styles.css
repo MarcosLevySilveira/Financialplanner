@@ -25,6 +25,7 @@ h1 {
     font-size: 2.5em;
 }
 
+
 /* Navigation styles */
 nav {
     background-color: #333;
@@ -150,13 +151,13 @@ table td button:hover {
 #cards-categorias {
     display: flex;
     flex-wrap: wrap; /* Permite quebrar a linha */
-    justify-content: center;
+    justify-content: space-between; /* Espaço igual entre os cards */
     gap: 10px; /* Espaçamento entre os cards */
     margin-top: 20px;
 }
 
 #cards-categorias .card {
-    width: calc(10% - 10px); /* Garante que 10 cards caibam em uma linha, considerando o gap */
+    flex-basis: calc(10% - 10px); /* Garante que 10 cards caibam por linha */
     min-width: 100px; /* Define um tamanho mínimo para os cards */
     text-align: center;
 }
@@ -165,6 +166,29 @@ table td button:hover {
 canvas {
     max-width: 100%;
     margin: 20px auto;
+}
+
+/* New styles for Entradas and Saídas */
+#cards-entradas, #cards-saidas {
+    display: flex;
+    flex-wrap: wrap; /* Permite quebrar a linha */
+    justify-content: space-between; /* Espaço igual entre os cards */
+    gap: 10px; /* Espaçamento entre os cards */
+    margin-top: 20px;
+}
+
+#cards-entradas .card, #cards-saidas .card {
+    flex-basis: calc(10% - 10px); /* Garante que os cards caibam de forma ajustada */
+    min-width: 100px; /* Tamanho mínimo dos cards */
+    text-align: center;
+}
+
+#cards-entradas h3, #cards-saidas h3 {
+    font-size: 1.5em;
+    color: #333;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
 }
 
 /* Responsive design adjustments */
